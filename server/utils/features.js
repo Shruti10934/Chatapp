@@ -28,7 +28,7 @@ const sendToken = (res, user, code, message) => {
   return res
     .status(code)
     .cookie("chatapp", token, cookieOptions)
-    .json({ success: true, message, user: user });
+    .json({ success: true, message, user });
 };
 
 const emitEvent = (req, event, users, data) => {

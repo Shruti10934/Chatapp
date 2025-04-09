@@ -1,10 +1,11 @@
-import { Avatar, Stack } from "@mui/material";
+import { Avatar, Skeleton, Stack } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import AvatarCard from "../../components/shared/AvatarCard";
 import Table from "../../components/shared/Table";
-import { dashboardData } from "../../constants/sampleData";
+import { useErrors } from "../../hooks/Hook";
 import { transformImage } from "../../lib/features";
+import { useGetAllChatsQuery } from "../../redux/api/api";
 
 const columns = [
   {
@@ -18,15 +19,19 @@ const columns = [
     headerName: "Avatar",
     headerClassName: "table-header",
     width: 150,
-    renderCell: (params) => (
-      <AvatarCard avatar={params.row.avatar} />
-    ),
+    renderCell: (params) => <AvatarCard avatar={params.row.avatar} />,
   },
   {
     field: "name",
     headerName: "Name",
     headerClassName: "table-header",
     width: 300,
+  },
+  {
+    field: "groupChat",
+    headerName: "Group",
+    headerClassName: "table-header",
+    width: 100,
   },
   {
     field: "totalMembers",
@@ -39,7 +44,9 @@ const columns = [
     headerName: "Members",
     headerClassName: "table-header",
     width: 400,
-    renderCell: (params) => <AvatarCard max={100} avatar={params.row.members}/>
+    renderCell: (params) => (
+      <AvatarCard max={100} avatar={params.row.members} />
+    ),
   },
   {
     field: "totalMessages",
@@ -62,23 +69,34 @@ const columns = [
 ];
 const ChatManagement = () => {
   const [rows, setRows] = useState([]);
+
+  const { data, error, isError, isLoading } = useGetAllChatsQuery();
+
+  useErrors([{ isError, error }]);
+
   useEffect(() => {
-    setRows(
-      dashboardData.chats.map((data) => ({
-        ...data,
-        id: data._id,
-        avatar: data.avatar.map(i => transformImage(i, 50)),
-        members: data.members.map(i => transformImage(i.avatar, 50)),
-        creator: {
-          name: data.creator.name,
-          avatar: transformImage(data.creator.avatar, 50),
-        }
-      }))
-    );
-  }, []);
+    if (data) {
+      setRows(
+        data.chats.map((data) => ({
+          ...data,
+          id: data._id,
+          avatar: data.avatar.map((i) => transformImage(i, 50)),
+          members: data.members.map((i) => transformImage(i.avatar, 50)),
+          creator: {
+            name: data.creator.name,
+            avatar: transformImage(data.creator.avatar, 50),
+          },
+        }))
+      );
+    }
+  }, [data]);
   return (
     <AdminLayout>
-      <Table rows={rows} columns={columns} heading={"All Chats"} />
+      {isLoading ? (
+        <Skeleton height={"100vh"}/>
+      ) : (
+        <Table rows={rows} columns={columns} heading={"All Chats"} />
+      )}
     </AdminLayout>
   );
 };

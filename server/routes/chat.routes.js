@@ -32,9 +32,9 @@ app.use(isAuthenticated);
 app.post("/new", newGroupValidator(), validateHandler, newGroupChat);
 app.get("/my", getMyChats);
 app.get("/my/groups", getMyGroups);
-app.put("/addmembers", addMemberValidator(), validateHandler, addMembers);
+app.put("/add-members", addMemberValidator(), validateHandler, addMembers);
 app.put(
-  "/removemember",
+  "/remove-member",
   removeMemberValidator(),
   validateHandler,
   removeMember

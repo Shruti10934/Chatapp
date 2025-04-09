@@ -1,6 +1,3 @@
-import React from "react";
-import AdminLayout from "../../components/layout/AdminLayout";
-import { Box, Container, Paper, Stack, Typography } from "@mui/material";
 import {
   AdminPanelSettings as AdminPanelSettingsIcon,
   Group as GroupIcon,
@@ -8,15 +5,27 @@ import {
   Notifications as NotificationsIcon,
   Person as PersonIcon,
 } from "@mui/icons-material";
+import { Box, Container, Paper, Skeleton, Stack, Typography } from "@mui/material";
 import moment from "moment";
+import React from "react";
+import AdminLayout from "../../components/layout/AdminLayout";
+import { LayoutLoader } from "../../components/layout/Loaders";
+import { DoughChart, LineChart } from "../../components/specific/Charts";
 import {
   CurveButton,
   SearchField,
 } from "../../components/styles/StyledComponents";
 import { matBlack } from "../../constants/color";
-import { DoughChart, LineChart } from "../../components/specific/Charts";
+import { useErrors } from "../../hooks/Hook";
+import { useGetStatsQuery } from "../../redux/api/api";
 
 const Dashboard = () => {
+  const { data, isLoading, isError, error } = useGetStatsQuery();
+
+  useErrors([{ isError, error }]);
+
+  const { stats } = data || {};
+
   const Appbar = (
     <Paper
       elevation={3}
@@ -55,14 +64,26 @@ const Dashboard = () => {
       alignItems={"center"}
       spacing={"2rem"}
     >
-      <Widget title={"Users"} value={34} icon={<PersonIcon />} />
-      <Widget title={"Chats"} value={34} icon={<GroupIcon />} />
-      <Widget title={"Messages"} value={453} icon={<MessageIcon />} />
+      <Widget title={"Users"} value={stats?.usersCount} icon={<PersonIcon />} />
+      <Widget
+        title={"Chats"}
+        value={stats?.totalChatsCount}
+        icon={<GroupIcon />}
+      />
+      <Widget
+        title={"Messages"}
+        value={stats?.messagesCount}
+        icon={<MessageIcon />}
+      />
     </Stack>
   );
-  return (
+
+  return isLoading ? (
+    <LayoutLoader />
+  ) : (
     <AdminLayout>
-      <Container component={"main"} sx={{ padding: { xs: "3rem" } }}>
+      {
+        isLoading? <Skeleton height={"100vh"}/> : <Container component={"main"} sx={{ padding: { xs: "3rem" } }}>
         {Appbar}
         <Stack
           direction={{ xs: "column", lg: "row" }}
@@ -71,9 +92,8 @@ const Dashboard = () => {
           justifyContent={"center"}
           alignItems={{
             xs: "center",
-            lg: "stretch"
-          }
-          }
+            lg: "stretch",
+          }}
           gap={"2rem"}
         >
           <Paper
@@ -88,7 +108,7 @@ const Dashboard = () => {
             <Typography margin={"2rem 0"} variant="h4">
               Last Messages
             </Typography>
-            <LineChart value={[1, 5, 3, 80, 0, 5]} />
+            <LineChart value={stats?.messagesChart || []} />
           </Paper>
           <Paper
             elevation={3}
@@ -107,7 +127,10 @@ const Dashboard = () => {
           >
             <DoughChart
               labels={["single chat", "group chat"]}
-              value={[23, 77]}
+              value={[
+                stats?.totalChatsCount - stats?.groupsCount || 0,
+                stats?.groupsCount || 0,
+              ]}
             />
             <Stack
               spacing={"1rem"}
@@ -126,6 +149,7 @@ const Dashboard = () => {
         </Stack>
         {Widgets}
       </Container>
+      }
     </AdminLayout>
   );
 };

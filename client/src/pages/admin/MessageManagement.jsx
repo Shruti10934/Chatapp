@@ -1,12 +1,12 @@
-import { Avatar, Box, Stack } from "@mui/material";
+import { Avatar, Box, Skeleton, Stack } from "@mui/material";
+import moment from "moment";
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
-import AvatarCard from "../../components/shared/AvatarCard";
-import Table from "../../components/shared/Table";
-import { dashboardData } from "../../constants/sampleData";
-import { fileFormat, transformImage } from "../../lib/features";
-import moment from "moment";
 import RenderAttachment from "../../components/shared/RenderAttachment";
+import Table from "../../components/shared/Table";
+import { useErrors } from "../../hooks/Hook";
+import { fileFormat, transformImage } from "../../lib/features";
+import { useGetAllMessagesQuery } from "../../redux/api/api";
 
 const columns = [
   {
@@ -82,22 +82,38 @@ const columns = [
 
 const MessageManagement = () => {
   const [rows, setRows] = useState([]);
+
+  const { isLoading, isError, error, data } = useGetAllMessagesQuery();
+
+  useErrors([{ isError, error }]);
+
   useEffect(() => {
-    setRows(
-      dashboardData.messages.map((data) => ({
-        ...data,
-        id: data._id,
-        sender: {
-          name: data.sender.name,
-          avatar: transformImage(data.sender.avatar, 50),
-        },
-        createdAt: moment(data.createdAt).format("MMMM Do YYYY, h:mm:ss a"),
-      }))
-    );
-  }, []);
+    if(data){
+      setRows(
+        data.messages.map((data) => ({
+          ...data,
+          id: data._id,
+          sender: {
+            name: data.sender.name,
+            avatar: transformImage(data.sender.avatar, 50),
+          },
+          createdAt: moment(data.createdAt).format("MMMM Do YYYY, h:mm:ss a"),
+        }))
+      );
+    }
+  }, [data]);
   return (
     <AdminLayout>
-      <Table rows={rows} columns={columns} heading={"All Messages"} rowHeight={200}/>
+      {isLoading ? (
+        <Skeleton height={"100vh"}/>
+      ) : (
+        <Table
+          rows={rows}
+          columns={columns}
+          heading={"All Messages"}
+          rowHeight={200}
+        />
+      )}
     </AdminLayout>
   );
 };

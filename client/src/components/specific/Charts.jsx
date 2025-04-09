@@ -1,19 +1,18 @@
-import React from "react";
-import { Line, Doughnut } from "react-chartjs-2";
 import {
-  Chart as chartJS,
-  Tooltip,
-  Filler,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
   ArcElement,
+  CategoryScale,
+  Chart as chartJS,
+  Filler,
   Legend,
-  plugins,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Tooltip
 } from "chart.js";
+import React from "react";
+import { Doughnut, Line } from "react-chartjs-2";
+import { orange, purple, purpleLight } from "../../constants/color";
 import { getLast7Days } from "../../lib/features";
-import { purpleLight, purple, orange } from "../../constants/color";
 
 
 
@@ -60,7 +59,7 @@ const LineChart = ({value = []}) => {
     labels,
     datasets: [{
       data: value,
-      Label: "Revenue",
+      Label: "Messages",
       fill: true,
       backgroundColor: purpleLight,
       borderColor: purple,
@@ -99,4 +98,5 @@ const DoughChart = ({value = [], labels = []}) => {
   return <Doughnut data={data} options={doughnutChartOptions} style={{zIndex: "10"}}/>;
 };
 
-export { LineChart, DoughChart };
+export { DoughChart, LineChart };
+

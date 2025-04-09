@@ -10,8 +10,11 @@ import {
 } from "@mui/material";
 import React, { memo, useState } from "react";
 import { sampleNotifications } from "../../constants/sampleData";
-import { useAcceptFriendRequestMutation, useGetNotificationQuery } from "../../redux/api/api";
-import { useErrors } from "../../hooks/Hook";
+import {
+  useAcceptFriendRequestMutation,
+  useGetNotificationQuery,
+} from "../../redux/api/api";
+import { useAsyncMutation, useErrors } from "../../hooks/Hook";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsNotification } from "../../redux/reducers/misc";
 import toast from "react-hot-toast";
@@ -21,22 +24,13 @@ const Notifications = () => {
   const { isNotification } = useSelector((state) => state.misc);
   const { isLoading, data, isError, error } = useGetNotificationQuery();
 
-  const [acceptRequest] = useAcceptFriendRequestMutation();
+  const [acceptRequest] = useAsyncMutation(useAcceptFriendRequestMutation);
 
   const dispatch = useDispatch();
 
-  const friendRequestHandler = async({ _id, accept }) => {
-    dispatch(setIsNotification(false))
-    try {
-      const res = await acceptRequest({requestId: _id, accept})
-      if(res?.data?.success){
-        toast.success(res.data?.message);
-      }
-      else toast.error(res?.data?.error || "Something went wrong")
-    } catch (error) {
-      toast.error("Something went wrong")
-      console.log(error)
-    }
+  const friendRequestHandler = async ({ _id, accept }) => {
+    dispatch(setIsNotification(false));
+    await acceptRequest("Accepting...", { requestId: _id, accept });
   };
 
   const closeNotificationHandler = () => dispatch(setIsNotification(false));
@@ -80,7 +74,7 @@ const NotificationItem = memo(({ sender, _id, handler }) => {
         width={"100%"}
         alignItems={"center"}
       >
-        <Avatar src={transformImage(avatar)}/>
+        <Avatar src={transformImage(avatar)} />
         <Typography
           variant="body1"
           sx={{

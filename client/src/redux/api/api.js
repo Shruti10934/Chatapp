@@ -79,6 +79,117 @@ const api = createApi({
       }),
     }),
 
+    myGroups: builder.query({
+      query: () => ({
+        url: "chat/my/groups",
+        credentials: "include",
+      }),
+      providesTags: ["Chat"],
+    }),
+
+    availableFriends: builder.query({
+      query: (chatId) => {
+        let url = `user/friends`
+        if(chatId) url += `?chatId=${chatId}`;
+        return {
+          url,
+          credentials: "include",
+        }
+      },
+      providesTags: ["Chat"]
+    }),
+
+    newGroup: builder.mutation({
+      query: ({name, members}) => ({
+        url: "/chat/new",
+        method: "POST",
+        credentials: "include",
+        body: {name, members},
+      }),
+      invalidatesTags: ["Chat"]
+    }),
+
+    renameGroup: builder.mutation({
+      query: ({chatId, name}) => ({
+        url: `chat/${chatId}`,
+        method: "PUT",
+        credentials: "include",
+        body: {name},
+      }),
+      invalidatesTags: ["Chat"]
+    }),
+
+    removeMember: builder.mutation({
+      query: ({chatId, userId}) => ({
+        url: "chat/remove-member",
+        method: "PUT",
+        credentials: "include",
+        body: {userId, chatId},
+      }),
+      invalidatesTags: ["Chat"]
+    }),
+
+    addMembers: builder.mutation({
+      query: ({chatId, members}) => ({
+        url: "chat/add-members",
+        method: "PUT",
+        credentials: "include",
+        body: {members, chatId},
+      }),
+      invalidatesTags: ["Chat"]
+    }),
+
+    deleteChat: builder.mutation({
+      query: (chatId) => ({
+        url: `chat/${chatId}`,
+        method: "DELETE",
+        credentials: "include",
+      }),
+      invalidatesTags: ["Chat"]
+    }),
+
+    leaveGroup: builder.mutation({
+      query: (chatId) => ({
+        url: `chat/leave/${chatId}`,
+        method: "DELETE",
+        credentials: "include",
+      }),
+      invalidatesTags: ["Chat"]
+    }),
+
+    getStats: builder.query({
+      query: () => ({
+        url: 'admin/stats',
+        credentials: "include",
+      }),
+      providesTags: ["Chat", "User", "Message"]
+    }),
+
+    getAllUsers: builder.query({
+      query: () => ({
+        url: 'admin/users',
+        credentials: "include",
+      }),
+      providesTags: ["User"]
+    }),
+
+    getAllChats: builder.query({
+      query: () => ({
+        url: 'admin/chats',
+        credentials: "include",
+      }),
+      providesTags: ["Chat"]
+    }),
+
+    getAllMessages: builder.query({
+      query: () => ({
+        url: 'admin/messages',
+        credentials: "include",
+      }),
+      providesTags: ["Message"]
+    }),
+
+
   }),
 });
 
@@ -92,4 +203,16 @@ export const {
   useChatDetailsQuery,
   useGetMessagesQuery,
   useSendAttachmentsMutation,
+  useMyGroupsQuery,
+  useAvailableFriendsQuery,
+  useNewGroupMutation,
+  useRenameGroupMutation,
+  useRemoveMemberMutation,
+  useAddMembersMutation,  
+  useDeleteChatMutation,
+  useLeaveGroupMutation,
+  useGetStatsQuery,
+  useGetAllUsersQuery,
+  useGetAllChatsQuery,
+  useGetAllMessagesQuery,
 } = api;

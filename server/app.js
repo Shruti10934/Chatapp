@@ -11,8 +11,11 @@ import { connectDB } from "./utils/features.js";
 
 import { corsOptions } from "./constants/config.js";
 import {
+  CHAT_JOINED,
+  CHAT_LEAVED,
   NEW_MESSAGE,
   NEW_MESSAGE_ALERT,
+  ONLINE_USERS,
   START_TYPING,
   STOP_TYPING,
 } from "./constants/event.js";
@@ -31,7 +34,9 @@ const mongoURI = process.env.MONGO_URI;
 const port = process.env.PORT || 3000;
 const adminSecretKey = process.env.ADMIN_SECRET_KEY || "dajkfhaskgkfsaklfew";
 const envMode = process.env.NODE_ENV.trim() || "PRODUCTION";
+
 const userSocketIDs = new Map();
+const onlineUsers = new Set();
 
 connectDB(mongoURI);
 
@@ -103,7 +108,7 @@ io.on("connection", (socket) => {
     try {
       await Message.create(messageDB);
     } catch (error) {
-      console.log("Error while saving message to database : ", error);
+      throw new Error(error)
     }
   });
 
@@ -115,15 +120,28 @@ io.on("connection", (socket) => {
   });
 
   socket.on(STOP_TYPING, ({ members, chatId }) => {
-    console.log("Stop - typing ", chatId);
-
     const membersSocket = getSockets(members);
     socket.to(membersSocket).emit(STOP_TYPING, { chatId });
   });
 
+  socket.on(CHAT_JOINED, ({userId, members}) => {
+    onlineUsers.add(userId.toString());
+
+    const membersSocket = getSockets(members);
+    io.to(membersSocket).emit(ONLINE_USERS, Array.from(onlineUsers));
+  })
+
+  socket.on(CHAT_LEAVED, ({userId, members}) => {
+    onlineUsers.delete(userId.toString())
+
+    const membersSocket = getSockets(members);
+    io.to(membersSocket).emit(ONLINE_USERS, Array.from(onlineUsers));
+  })
+
   socket.on("disconnect", () => {
-    console.log("User disconncted");
     userSocketIDs.delete(user._id.toString());
+    onlineUsers.delete(user._id.toString());
+    socket.broadcast.emit(ONLINE_USERS, Array.from(onlineUsers));
   });
 });
 

@@ -20,9 +20,6 @@ const newUser = TryCatch(async (req, res, next) => {
   const file = req.file;
 
   if (!file) return next(new ErrorHandler("Please Upload Avatar"));
-  
-  console.log("new User run")
-
 
   const result = await uploadFilesToCloudinary([file]);
 
@@ -134,7 +131,7 @@ const acceptFrientRequest = TryCatch(async (req, res, next) => {
       .json({ success: true, message: "Friend Request rejected" });
   }
 
-  const members = [request.sender, request.receiver];
+  const members = [request.sender._id, request.receiver._id];
 
   await Promise.all([
     Chat.create({

@@ -1,27 +1,36 @@
 import {
-    Close as CloseIcon,
-    Dashboard as DashboardIcon,
-    ExitToApp as ExitToAppIcon,
-    Group as GroupIcon,
-    ManageAccounts as ManageAccountsIcon,
-    Menu as MenuIcon,
-    Message as MessageIcon,
+  Close as CloseIcon,
+  Dashboard as DashboardIcon,
+  ExitToApp as ExitToAppIcon,
+  Group as GroupIcon,
+  ManageAccounts as ManageAccountsIcon,
+  Menu as MenuIcon,
+  Message as MessageIcon,
 } from "@mui/icons-material";
-import { Box, Drawer, IconButton, Stack, styled, Typography } from "@mui/material";
+import {
+  Box,
+  Drawer,
+  IconButton,
+  Stack,
+  styled,
+  Typography,
+} from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import React, { useState } from "react";
 import { Link as LinkComponent, Navigate, useLocation } from "react-router-dom";
 import { matBlack } from "../../constants/color";
+import { useDispatch, useSelector } from "react-redux";
+import { adminLogout } from "../../redux/thunks/admin";
 
 const Link = styled(LinkComponent)`
-    text-decoration: none;
-    border-radius : 2rem;
-    padding: 1rem 2rem;
-    color: black;
-    &:hover{
-        color: rgba(0,0,0,0.54)
-    }
-`
+  text-decoration: none;
+  border-radius: 2rem;
+  padding: 1rem 2rem;
+  color: black;
+  &:hover {
+    color: rgba(0, 0, 0, 0.54);
+  }
+`;
 
 const adminTabs = [
   {
@@ -47,8 +56,12 @@ const adminTabs = [
 ];
 
 const Sidebar = ({ w = "100%" }) => {
-    const location = useLocation();
-    const logoutHandler = () => {};
+  const dispatch = useDispatch();
+
+  const location = useLocation();
+  const logoutHandler = () => {
+    dispatch(adminLogout());
+  };
   return (
     <Stack width={w} padding={"3rem"} direction={"column"} spacing={"3rem"}>
       <Typography variant="h5">ChatApp</Typography>
@@ -57,12 +70,13 @@ const Sidebar = ({ w = "100%" }) => {
           <Link
             key={tab.path}
             to={tab.path}
-            sx={location.pathname === tab.path && {
+            sx={
+              location.pathname === tab.path && {
                 bgcolor: matBlack,
                 color: "white",
-                ":hover" : {color: "white"}
-            }}
-            
+                ":hover": { color: "white" },
+              }
+            }
           >
             <Stack direction={"row"} alignItems={"center"} spacing={"1rem"}>
               {tab.icon}
@@ -70,28 +84,27 @@ const Sidebar = ({ w = "100%" }) => {
             </Stack>
           </Link>
         ))}
-         <Link
-            onClick={logoutHandler}
-          >
-            <Stack direction={"row"} alignItems={"center"} spacing={"1rem"}>
-              <ExitToAppIcon/>
-              <Typography>Logout</Typography>
-            </Stack>
-          </Link>
+        <Link onClick={logoutHandler}>
+          <Stack direction={"row"} alignItems={"center"} spacing={"1rem"}>
+            <ExitToAppIcon />
+            <Typography>Logout</Typography>
+          </Stack>
+        </Link>
       </Stack>
     </Stack>
   );
 };
 
-const isAdmin = true;
 const AdminLayout = ({ children }) => {
+  const { isAdmin } = useSelector((state) => state.auth);
+
   const [isMobile, setIsMobile] = useState(false);
 
   const handleMobile = () => {
     setIsMobile(!isMobile);
   };
   const handleClose = () => setIsMobile(!isMobile);
-  if(!isAdmin) return <Navigate to="/admin"/>
+  if (!isAdmin) return <Navigate to="/admin" />;
   return (
     <Grid container minHeight={"100vh"}>
       <Box

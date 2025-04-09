@@ -1,4 +1,4 @@
-import { useFileHandler, useInputValidation, useStrongPassword } from "6pp";
+import { useFileHandler, useInputValidation } from "6pp";
 import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
 import {
   Avatar,
@@ -19,10 +19,10 @@ import { userExists } from "../redux/reducers/auth";
 import { usernameValidator } from "../utils/validators";
 
 import { server } from "../constants/config";
-import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const toggleLogin = () => setIsLogin((prev) => !prev);
   const name = useInputValidation("");
   const bio = useInputValidation("");
@@ -34,6 +34,8 @@ const Login = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    const toastId = toast.loading("Signing Up...");
+    setIsLoading(true);
     const formData = new FormData();
     formData.append("avatar", avatar.file);
     formData.append("username", username.value);
@@ -49,21 +51,24 @@ const Login = () => {
     };
 
     try {
-      const {data} = await axios.post(
+      const { data } = await axios.post(
         `${server}/api/v1/user/new`,
         formData,
         config
       );
-      dispatch(userExists(true));
-      toast.success(data?.message || "Signup successful!");
-
+      dispatch(userExists(data.user));
+      toast.success(data?.message, { id: toastId });
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Something went wrong");
+      toast.error(error?.response?.data?.message, { id: toastId });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    const toastId = toast.loading("Logging In...");
+    setIsLoading(true);
     const config = {
       withCredentials: true,
       headers: {
@@ -77,11 +82,13 @@ const Login = () => {
         config
       );
 
-      dispatch(userExists(true));
-      toast.success(data?.message || "login success");
+      dispatch(userExists(data.user));
+      toast.success(data?.message, { id: toastId });
     } catch (error) {
       console.error("Login Error:", error.response?.data);
-      toast.error(error?.response?.data?.message || "Something went wrong");
+      toast.error(error?.response?.data?.message, { id: toastId });
+    } finally {
+      setIsLoading(false);
     }
   };
   return (
@@ -153,6 +160,7 @@ const Login = () => {
                   type="submit"
                   sx={{ marginTop: "1rem" }}
                   fullWidth
+                  disabled={isLoading}
                 >
                   Login
                 </Button>
@@ -166,6 +174,7 @@ const Login = () => {
                   sx={{ marginTop: "1rem" }}
                   fullWidth
                   onClick={toggleLogin}
+                  disabled={isLoading}
                 >
                   Sign Up Instead
                 </Button>
@@ -279,6 +288,7 @@ const Login = () => {
                   type="submit"
                   sx={{ marginTop: "1rem" }}
                   fullWidth
+                  disabled={isLoading}
                 >
                   Sign Up
                 </Button>
@@ -292,6 +302,7 @@ const Login = () => {
                   sx={{ marginTop: "1rem" }}
                   fullWidth
                   onClick={toggleLogin}
+                  disabled={isLoading}
                 >
                   Login Instead
                 </Button>

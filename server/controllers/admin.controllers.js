@@ -44,7 +44,7 @@ const allChats = TryCatch(async (req, res, next) => {
         groupChat,
         avatar: members
           .slice(0, 3)
-          .map(({ _id, name, avatar }) => ({ _id, name, avatar: avatar.url })),
+          .map((member) => (member.avatar.url)),
         members: members.map(({ _id, name, avatar }) => ({
           _id,
           name,
@@ -60,7 +60,7 @@ const allChats = TryCatch(async (req, res, next) => {
     })
   );
 
-  return res.status(200).json({ success: true, transformedChats });
+  return res.status(200).json({ success: true, chats: transformedChats });
 });
 
 const allMessages = TryCatch(async (req, res, next) => {
@@ -96,23 +96,25 @@ const getDashboardStats = TryCatch(async (req, res, next) => {
       Chat.countDocuments(),
     ]);
 
-  const stats = {
-    groupsCount,
-    usersCount,
-    messagesCount,
-    totalChatsCount,
-  };
+    
+    const today = new Date();
+    const last7days = new Date();
+    last7days.setDate(last7days.getDate() - 7);
+    
+    const last7daysMessages = await Message.find({
+      createdAt: { $gte: last7days, $lte: today },
+    }).select("createdAt");
+    
+    const messages = new Array(7).fill(0);
 
-  const today = new Date();
-  const last7days = new Date();
-  last7days.setDate(last7days.getDate() - 7);
-
-  const last7daysMessages = await Message.find({
-    createdAt: { $gte: last7days, $lte: today },
-  }).select("createdAt");
-
-  const messages = new Array(7).fill(0);
-
+    const stats = {
+      groupsCount,
+      usersCount,
+      messagesCount,
+      totalChatsCount,
+      messagesChart: messages
+    };
+    
   last7daysMessages.forEach((message) => {
     const index = Math.floor(
       (today.getTime() - message.createdAt.getTime()) / (24 * 60 * 60 * 1000)
@@ -120,7 +122,7 @@ const getDashboardStats = TryCatch(async (req, res, next) => {
     messages[6 - index] += 1;
   });
 
-  return res.status(200).json({ success: true, stats, messages });
+  return res.status(200).json({ success: true, stats });
 });
 
 const adminLogin = (req, res, next) => {
